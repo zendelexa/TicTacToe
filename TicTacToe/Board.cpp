@@ -1,9 +1,11 @@
 #include "Board.h"
-#include "BoardEvaluation.h"
 #include <vector>
 #include <iostream>
+#include "Optional.cpp"
+#include "Move.h"
 
 const char BLANK_TILE = ' ';
+const char TIE_SYMBOL = '-';
 
 Board::Board(const uint8_t board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
 
@@ -94,5 +96,56 @@ char Board::checkWin() const
 		return winner_symbol;
 
 	// Not a win
-	return BLANK_TILE;
+	for (auto& row : board)
+		for (auto& tile : row)
+			if (tile == BLANK_TILE)
+				return BLANK_TILE;
+	return TIE_SYMBOL;
+}
+
+Move Board::getBestMove(const std::vector<char>& player_sequence, uint8_t current_player)
+{
+	char outcome = checkWin();
+	if (outcome == TIE_SYMBOL)
+	{
+		return Move((uint8_t)player_sequence.size(), 0);
+	}
+	if (outcome != BLANK_TILE)
+	{
+		uint8_t previous_player = (current_player + (uint8_t)player_sequence.size() - 1) % player_sequence.size();
+		uint8_t winning_player = previous_player;
+		Move move((uint8_t)player_sequence.size(), -1);
+		move.evaluation[winning_player] = 1;
+		return move;
+	}
+
+	Move best_move((uint8_t)player_sequence.size(), -1);
+	for (uint8_t y = 0; y < board_size; y++)
+	{
+		for (uint8_t x = 0; x < board_size; x++)
+		{
+			if (board[y][x] != BLANK_TILE) continue;
+
+			board[y][x] = player_sequence[current_player];
+			
+			Move next_move = getBestMove(player_sequence, (current_player + 1) % player_sequence.size());
+			if (best_move.isWorse(next_move, current_player) || !best_move.has_move)
+			{
+				best_move.has_move = true;
+				best_move.evaluation = next_move.evaluation;
+				best_move.y = y;
+				best_move.x = x;
+			}
+			/*else if (best_move.isSame(next_move, current_player))
+			{
+				for (int i = 0; i < best_move.evaluation.size(); i++)
+				{
+					best_move.evaluation[i] += next_move.evaluation[i];
+				}
+			}*/
+
+			board[y][x] = BLANK_TILE;
+		}
+	}
+	return best_move;
 }

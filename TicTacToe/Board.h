@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include "Optional.cpp"
+#include "Move.h"
 
 class Board
 {
@@ -12,6 +14,6 @@ public:
 	void print() const;
 	void place(const uint8_t y, const uint8_t x, char symbol);
 	char checkWin() const;
-	std::pair<uint8_t, uint8_t> getBestMove(const std::vector<char>& player_sequence, uint8_t current_player);
+	Move getBestMove(const std::vector<char>& player_sequence, uint8_t current_player);
 };
 

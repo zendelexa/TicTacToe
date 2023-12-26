@@ -3,11 +3,25 @@
 
 int main()
 {
-	Board board(2);
-	board.place(0, 0, 'X');
-	board.place(1, 0, 'X');
-	board.print();
-	std::cout << board.checkWin();
+	int board_size = 3;
+
+	Board board(board_size);
+	
+	for (int i = 0; i < board_size * board_size; i++)
+	{
+		if (i % 2 == 1)
+		{
+			auto move = board.getBestMove({ 'X', 'O' }, 1);
+			board.place(move.y, move.x, 'O');
+		}
+		else
+		{
+			int y, x;
+			std::cin >> x >> y;
+			board.place(y, x, 'X');
+		}
+		board.print();
+	}
 
 	return 0;
 }
