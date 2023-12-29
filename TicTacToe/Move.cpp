@@ -1,5 +1,7 @@
 #include "Move.h"
 
+Move::Move() {}
+
 Move::Move(const int players_amount, const int start_evaluation_value) : evaluation(std::vector<int>(players_amount, start_evaluation_value)) {}
 Move::Move(const int y, const int x, const std::vector<int>& results) : has_move(true), y(y), x(x), evaluation(results) {}
 

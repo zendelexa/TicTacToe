@@ -1,13 +1,14 @@
-#include "Board.h"
 #include <vector>
 #include <iostream>
-#include "Optional.cpp"
+#include <string>
+#include <map>
+#include "Board.h"
 #include "Move.h"
 
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 
-Board::Board(const int board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
+Board::Board(const int board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) { memoization.clear(); }
 
 void Board::print() const
 {
@@ -105,6 +106,11 @@ char Board::checkWin() const
 
 Move Board::getBestMove(const std::vector<char>& player_sequence, int current_player)
 {
+	std::string board_string = this->toString();
+
+	if (memoization.find(board_string) != memoization.end())
+		return memoization[board_string];
+
 	char outcome = checkWin();
 	if (outcome == TIE_SYMBOL)
 	{
@@ -141,5 +147,14 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 			board[y][x] = BLANK_TILE;
 		}
 	}
-	return best_move;
+	return memoization[board_string] = best_move;
+}
+
+std::string Board::toString() const
+{
+	std::string res = "";
+	for (auto& row : board)
+		for (auto& c : row)
+			res += c;
+	return res;
 }

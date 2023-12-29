@@ -9,6 +9,7 @@ struct Move
 	int moves_remaining = 1e9;
 	std::vector<int> evaluation;
 
+	Move();
 	Move(const int players_amount, const int start_evaluation_value);
 	Move(const int y, const int x, const std::vector<int>& results);
 
