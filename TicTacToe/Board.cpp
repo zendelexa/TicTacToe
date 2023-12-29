@@ -108,18 +108,18 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 	char outcome = checkWin();
 	if (outcome == TIE_SYMBOL)
 	{
-		return Move(player_sequence.size(), 0);
+		return Move((int)player_sequence.size(), 0);
 	}
 	if (outcome != BLANK_TILE)
 	{
-		int previous_player = (current_player + player_sequence.size() - 1) % player_sequence.size();
+		int previous_player = (current_player + (int)player_sequence.size() - 1) % (int)player_sequence.size();
 		int winning_player = previous_player;
-		Move move(player_sequence.size(), -1);
+		Move move((int)player_sequence.size(), -1);
 		move.evaluation[winning_player] = 1;
 		return move;
 	}
 
-	Move best_move(player_sequence.size(), -1);
+	Move best_move((int)player_sequence.size(), -1);
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
@@ -135,14 +135,8 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 				best_move.evaluation = next_move.evaluation;
 				best_move.y = y;
 				best_move.x = x;
+				best_move.moves_remaining = next_move.moves_remaining + 1;
 			}
-			/*else if (best_move.isSame(next_move, current_player))
-			{
-				for (int i = 0; i < best_move.evaluation.size(); i++)
-				{
-					best_move.evaluation[i] += next_move.evaluation[i];
-				}
-			}*/
 
 			board[y][x] = BLANK_TILE;
 		}
