@@ -1,26 +1,51 @@
 #include "Board.h"
 #include <iostream>
 
+const char BLANK_TILE = ' ';
+const char TIE_SYMBOL = '-';
+
 int main()
 {
-	int board_size = 3;
+	std::cout << "Board size: ";
+	int board_size;
+	std::cin >> board_size;
+
+	std::cout << "Players amount: ";
+	int players_amount;
+	std::cin >> players_amount;
+	std::vector<char> players(players_amount);
+	for (int i = 0; i < players_amount; i++)
+		players[i] = 'A' + (char)i;
 
 	Board board(board_size);
 	
 	for (int i = 0; i < board_size * board_size; i++)
 	{
-		if (i % 2 == 1)
+		if (i % players_amount == 0)
 		{
-			auto move = board.getBestMove({ 'X', 'O' }, 1);
-			board.place(move.y, move.x, 'O');
+			system("cls");
+			board.print();
+			int y, x;
+			std::cout << "x y: ";
+			std::cin >> x >> y;
+			x--; y--;
+			board.place(y, x, players[0]);
 		}
 		else
 		{
-			int y, x;
-			std::cin >> x >> y;
-			board.place(y, x, 'X');
+			auto move = board.getBestMove(players, 1);
+			board.place(move.y, move.x, players[i % players_amount]);
 		}
-		board.print();
+
+		auto winner = board.checkWin();
+		if (winner != BLANK_TILE)
+		{
+			system("cls");
+			board.print();
+			if (winner == TIE_SYMBOL) std::cout << "Tie";
+			else std::cout << winner << " won!";
+			break;
+		}
 	}
 
 	return 0;

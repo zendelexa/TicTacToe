@@ -7,21 +7,21 @@
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 
-Board::Board(const uint8_t board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
+Board::Board(const int board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
 
 void Board::print() const
 {
-	for (uint8_t y = 0; y < board_size; y++)
+	for (int y = 0; y < board_size; y++)
 	{
 		if (y != 0)
 		{
 			std::cout << std::endl << "-";
-			for (uint8_t x = 1; x < board_size; x++)
+			for (int x = 1; x < board_size; x++)
 				std::cout << "--";
 			std::cout << std::endl;
 		}
 
-		for (uint8_t x = 0; x < board_size; x++)
+		for (int x = 0; x < board_size; x++)
 		{
 			if (x != 0)
 				std::cout << "|";
@@ -31,7 +31,7 @@ void Board::print() const
 	std::cout << std::endl;
 }
 
-void Board::place(const uint8_t y, const uint8_t x, char symbol)
+void Board::place(const int y, const int x, char symbol)
 {
 	board[y][x] = symbol;
 }
@@ -39,10 +39,10 @@ void Board::place(const uint8_t y, const uint8_t x, char symbol)
 char Board::checkWin() const
 {
 	// Horizontal lines
-	for (uint8_t y = 0; y < board_size; y++)
+	for (int y = 0; y < board_size; y++)
 	{
 		char winner_symbol = board[y][0];
-		for (uint8_t x = 1; x < board_size; x++)
+		for (int x = 1; x < board_size; x++)
 		{
 			if (winner_symbol != board[y][x])
 			{
@@ -55,10 +55,10 @@ char Board::checkWin() const
 	}
 
 	// Vertical lines
-	for (uint8_t x = 0; x < board_size; x++)
+	for (int x = 0; x < board_size; x++)
 	{
 		char winner_symbol = board[0][x];
-		for (uint8_t y = 1; y < board_size; y++)
+		for (int y = 1; y < board_size; y++)
 		{
 			if (winner_symbol != board[y][x])
 			{
@@ -72,7 +72,7 @@ char Board::checkWin() const
 
 	// Diagonals
 	char winner_symbol = board[0][0];
-	for (uint8_t y = 1; y < board_size; y++)
+	for (int y = 1; y < board_size; y++)
 	{
 		if (winner_symbol != board[y][y])
 		{
@@ -84,7 +84,7 @@ char Board::checkWin() const
 		return winner_symbol;
 
 	winner_symbol = board[0][board_size - 1];
-	for (uint8_t y = 1; y < board_size; y++)
+	for (int y = 1; y < board_size; y++)
 	{
 		if (winner_symbol != board[y][board_size - 1 - y])
 		{
@@ -103,26 +103,26 @@ char Board::checkWin() const
 	return TIE_SYMBOL;
 }
 
-Move Board::getBestMove(const std::vector<char>& player_sequence, uint8_t current_player)
+Move Board::getBestMove(const std::vector<char>& player_sequence, int current_player)
 {
 	char outcome = checkWin();
 	if (outcome == TIE_SYMBOL)
 	{
-		return Move((uint8_t)player_sequence.size(), 0);
+		return Move(player_sequence.size(), 0);
 	}
 	if (outcome != BLANK_TILE)
 	{
-		uint8_t previous_player = (current_player + (uint8_t)player_sequence.size() - 1) % player_sequence.size();
-		uint8_t winning_player = previous_player;
-		Move move((uint8_t)player_sequence.size(), -1);
+		int previous_player = (current_player + player_sequence.size() - 1) % player_sequence.size();
+		int winning_player = previous_player;
+		Move move(player_sequence.size(), -1);
 		move.evaluation[winning_player] = 1;
 		return move;
 	}
 
-	Move best_move((uint8_t)player_sequence.size(), -1);
-	for (uint8_t y = 0; y < board_size; y++)
+	Move best_move(player_sequence.size(), -1);
+	for (int y = 0; y < board_size; y++)
 	{
-		for (uint8_t x = 0; x < board_size; x++)
+		for (int x = 0; x < board_size; x++)
 		{
 			if (board[y][x] != BLANK_TILE) continue;
 

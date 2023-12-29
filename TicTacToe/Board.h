@@ -5,15 +5,15 @@
 
 class Board
 {
-	const uint8_t board_size;
+	const int board_size;
 	std::vector<std::vector<char>> board;
 
 public:
-	Board(const uint8_t board_size);
+	Board(const int board_size);
 
 	void print() const;
-	void place(const uint8_t y, const uint8_t x, char symbol);
+	void place(const int y, const int x, char symbol);
 	char checkWin() const;
-	Move getBestMove(const std::vector<char>& player_sequence, uint8_t current_player);
+	Move getBestMove(const std::vector<char>& player_sequence, int current_player);
 };
 
