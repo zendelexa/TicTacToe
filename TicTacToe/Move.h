@@ -1,19 +1,17 @@
 #pragma once
-#include <vector>
 
 struct Move
 {
 	bool has_move = false;
-	int y;
-	int x;
+	int y = -1;
+	int x = -1;
 	int moves_remaining = 1e9;
-	std::vector<int> evaluation;
+	char evaluation;
 
 	Move();
-	Move(const int players_amount, const int start_evaluation_value);
-	Move(const int y, const int x, const std::vector<int>& results);
+	Move(const char evaluation);
 
-	bool isWorse(const Move& other, int current_player) const;
+	bool isWorse(const Move& other, char current_player) const;
 
-	bool isSame(const Move& other, int current_player) const;
+	bool isSame(const Move& other, char current_player) const;
 };
