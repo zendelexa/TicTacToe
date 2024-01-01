@@ -13,11 +13,8 @@ int main()
 	std::cout << "Players amount: ";
 	int players_amount;
 	std::cin >> players_amount;
-	std::vector<char> players(players_amount);
-	for (int i = 0; i < players_amount; i++)
-		players[i] = 'A' + (char)i;
 
-	Board board(board_size);
+	Board board(board_size, players_amount);
 	
 	for (int i = 0; i < board_size * board_size; i++)
 	{
@@ -29,12 +26,12 @@ int main()
 			std::cout << "x y: ";
 			std::cin >> x >> y;
 			x--; y--;
-			board.place(y, x, players[0]);
+			board.place(y, x, 0);
 		}
 		else
 		{
-			auto move = board.getBestMove(players, 1);
-			board.place(move.y, move.x, players[i % players_amount]);
+			auto move = board.getBestMove(i % players_amount);
+			board.place(move.y, move.x, i % players_amount);
 		}
 
 		auto winner = board.checkWin();

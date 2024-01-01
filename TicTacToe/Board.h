@@ -7,16 +7,17 @@
 class Board
 {
 	const int board_size;
+	const int players_amount;
 	std::vector<std::vector<char>> board;
 	std::map<std::string, Move> memoization;
 
 public:
-	Board(const int board_size);
+	Board(const int board_size, const int players_amount);
 
 	void print() const;
-	void place(const int y, const int x, char symbol);
+	void place(const int y, const int x, const int current_player);
 	char checkWin() const;
-	Move getBestMove(const std::vector<char>& player_sequence, int current_player);
+	Move getBestMove(const int current_player);
 	std::string toString() const;
 };
 

@@ -40,8 +40,6 @@ bool isSameHelper(char a, char b, char current_player)
 
 bool Move::isWorse(const Move& other, char current_player) const
 {
-
-
 	if (isSameHelper(evaluation, other.evaluation, current_player))
 		return other.moves_remaining < moves_remaining;
 	return isWorseHelper(evaluation, other.evaluation, current_player);

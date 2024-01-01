@@ -8,7 +8,7 @@
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 
-Board::Board(const int board_size) : board_size(board_size), board(board_size, std::vector<char>(board_size, BLANK_TILE)) { memoization.clear(); }
+Board::Board(const int board_size, const int players_amount) : board_size(board_size), players_amount(players_amount), board(board_size, std::vector<char>(board_size, BLANK_TILE)) { memoization.clear(); }
 
 void Board::print() const
 {
@@ -32,9 +32,13 @@ void Board::print() const
 	std::cout << std::endl;
 }
 
-void Board::place(const int y, const int x, char symbol)
+void Board::place(const int y, const int x, const int current_player)
 {
-	board[y][x] = symbol;
+	if (board[y][x] != BLANK_TILE)
+		throw std::invalid_argument("Invalid move. The tile is already occupied.");
+
+	char current_symbol = 'A' + (char)current_player;
+	board[y][x] = current_symbol;
 }
 
 char Board::checkWin() const
@@ -104,8 +108,10 @@ char Board::checkWin() const
 	return TIE_SYMBOL;
 }
 
-Move Board::getBestMove(const std::vector<char>& player_sequence, int current_player)
+Move Board::getBestMove(const int current_player)
 {
+	char current_symbol = 'A' + (char)current_player;
+
 	std::string board_string = this->toString();
 
 	if (memoization.find(board_string) != memoization.end())
@@ -123,10 +129,10 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 		{
 			if (board[y][x] != BLANK_TILE) continue;
 
-			board[y][x] = player_sequence[current_player];
+			place(y, x, current_player);
 			
-			Move next_move = getBestMove(player_sequence, (current_player + 1) % player_sequence.size());
-			if (best_move.isWorse(next_move, player_sequence[current_player]) || !best_move.has_move)
+			Move next_move = getBestMove((current_player + 1) % players_amount);
+			if (best_move.isWorse(next_move, current_symbol) || !best_move.has_move)
 			{
 				best_move.has_move = true;
 				best_move.evaluation = next_move.evaluation;
