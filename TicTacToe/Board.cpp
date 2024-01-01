@@ -112,20 +112,11 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 		return memoization[board_string];
 
 	char outcome = checkWin();
-	if (outcome == TIE_SYMBOL)
-	{
-		return Move((int)player_sequence.size(), 0);
-	}
 	if (outcome != BLANK_TILE)
-	{
-		int previous_player = (current_player + (int)player_sequence.size() - 1) % (int)player_sequence.size();
-		int winning_player = previous_player;
-		Move move((int)player_sequence.size(), -1);
-		move.evaluation[winning_player] = 1;
-		return move;
-	}
+		return memoization[board_string] = Move(outcome);
 
-	Move best_move((int)player_sequence.size(), -1);
+	const char DEFAULT_EVALUATION = '\n'; // Absurd symbol, technically it represents that everyone's losing
+	Move best_move(DEFAULT_EVALUATION);
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
@@ -135,7 +126,7 @@ Move Board::getBestMove(const std::vector<char>& player_sequence, int current_pl
 			board[y][x] = player_sequence[current_player];
 			
 			Move next_move = getBestMove(player_sequence, (current_player + 1) % player_sequence.size());
-			if (best_move.isWorse(next_move, current_player) || !best_move.has_move)
+			if (best_move.isWorse(next_move, player_sequence[current_player]) || !best_move.has_move)
 			{
 				best_move.has_move = true;
 				best_move.evaluation = next_move.evaluation;
