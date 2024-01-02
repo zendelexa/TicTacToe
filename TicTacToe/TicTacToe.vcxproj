@@ -130,7 +130,6 @@
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Move.cpp" />
-    <ClCompile Include="Optional.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />
