@@ -3,13 +3,14 @@
 #include <map>
 #include <string>
 #include "Move.h"
+#include "MoveMap.h"
 
 class Board
 {
 	const int board_size;
 	const int players_amount;
 	std::vector<std::vector<char>> board;
-	std::map<std::string, Move> memoization;
+	MoveMap memoization;
 
 public:
 	Board(const int board_size, const int players_amount);
@@ -18,6 +19,5 @@ public:
 	void place(const int y, const int x, const int current_player);
 	char checkWin() const;
 	Move getBestMove(const int current_player);
-	std::string toString() const;
 };
 

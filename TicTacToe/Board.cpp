@@ -8,7 +8,7 @@
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 
-Board::Board(const int board_size, const int players_amount) : board_size(board_size), players_amount(players_amount), board(board_size, std::vector<char>(board_size, BLANK_TILE)) { memoization.clear(); }
+Board::Board(const int board_size, const int players_amount) : board_size(board_size), players_amount(players_amount), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
 
 void Board::print() const
 {
@@ -110,29 +110,32 @@ char Board::checkWin() const
 
 Move Board::getBestMove(const int current_player)
 {
-	char current_symbol = 'A' + (char)current_player;
+	char current_player_symbol = 'A' + (char)current_player;
 
-	std::string board_string = this->toString();
-
-	if (memoization.find(board_string) != memoization.end())
-		return memoization[board_string];
+	Move best_move = memoization.getMove(board);
+	if (best_move.has_move)
+		return best_move;
 
 	char outcome = checkWin();
 	if (outcome != BLANK_TILE)
-		return memoization[board_string] = Move(outcome);
+	{
+		best_move = Move(outcome);
+		memoization.setMove(board, best_move);
+		return best_move;
+	}
 
 	const char DEFAULT_EVALUATION = '\n'; // Absurd symbol, technically it represents that everyone's losing
-	Move best_move(DEFAULT_EVALUATION);
+	best_move = Move(DEFAULT_EVALUATION);
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
 		{
 			if (board[y][x] != BLANK_TILE) continue;
 
-			place(y, x, current_player);
+			board[y][x] = current_player_symbol;
 			
 			Move next_move = getBestMove((current_player + 1) % players_amount);
-			if (best_move.isWorse(next_move, current_symbol) || !best_move.has_move)
+			if (best_move.isWorse(next_move, current_player_symbol) || !best_move.has_move)
 			{
 				best_move.has_move = true;
 				best_move.evaluation = next_move.evaluation;
@@ -144,14 +147,6 @@ Move Board::getBestMove(const int current_player)
 			board[y][x] = BLANK_TILE;
 		}
 	}
-	return memoization[board_string] = best_move;
-}
-
-std::string Board::toString() const
-{
-	std::string res = "";
-	for (auto& row : board)
-		for (auto& c : row)
-			res += c;
-	return res;
+	memoization.setMove(board, best_move);
+	return best_move;
 }
