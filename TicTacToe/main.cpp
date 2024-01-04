@@ -6,6 +6,8 @@ const char TIE_SYMBOL = '-';
 
 int main()
 {
+	srand(time(NULL));
+
 	std::cout << "Board size: ";
 	int board_size;
 	std::cin >> board_size;
@@ -23,10 +25,22 @@ int main()
 			system("cls");
 			board.print();
 			int y, x;
-			std::cout << "x y: ";
-			std::cin >> x >> y;
-			x--; y--;
-			board.place(y, x, 0);
+			do
+			{
+				try
+				{
+					std::cout << "y x: ";
+					std::cin >> y >> x;
+					y--; x--;
+					board.place(y, x, 0);
+					break;
+				}
+				catch (const std::exception&)
+				{
+					std::cout << "This tile is occupied.\n";
+				}
+			} while (true);
+
 		}
 		else
 		{

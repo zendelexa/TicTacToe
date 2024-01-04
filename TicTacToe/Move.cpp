@@ -8,6 +8,8 @@ Move::Move() = default;
 
 Move::Move(const char evaluation) : evaluation(evaluation) {}
 
+Move::Move(const int y, const int x, const int moves_remaining, const char evaluation) : has_move(true), y(y), x(x), moves_remaining(moves_remaining), evaluation(evaluation) {}
+
 bool isWorseHelper(char a, char b, char current_player)
 {
 	std::vector<char> order = { current_player, BLANK_TILE, TIE_SYMBOL };
@@ -40,12 +42,10 @@ bool isSameHelper(char a, char b, char current_player)
 
 bool Move::isWorse(const Move& other, char current_player) const
 {
-	if (isSameHelper(evaluation, other.evaluation, current_player))
-		return other.moves_remaining < moves_remaining;
 	return isWorseHelper(evaluation, other.evaluation, current_player);
 }
 
 bool Move::isSame(const Move& other, char current_player) const
 {
-	return isSameHelper(evaluation, other.evaluation, current_player) && moves_remaining == other.moves_remaining;
+	return isSameHelper(evaluation, other.evaluation, current_player);
 }

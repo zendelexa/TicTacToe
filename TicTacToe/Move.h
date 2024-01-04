@@ -10,6 +10,7 @@ struct Move
 
 	Move();
 	Move(const char evaluation);
+	Move(const int y, const int x, const int moves_remaining, const char evaluation);
 
 	bool isWorse(const Move& other, char current_player) const;
 

@@ -112,20 +112,20 @@ Move Board::getBestMove(const int current_player)
 {
 	char current_player_symbol = 'A' + (char)current_player;
 
-	Move best_move = memoization.getMove(board);
-	if (best_move.has_move)
-		return best_move;
+	Move best_memoized_move = memoization.getMove(board);
+	if (best_memoized_move.has_move)
+		return best_memoized_move;
 
 	char outcome = checkWin();
 	if (outcome != BLANK_TILE)
 	{
-		best_move = Move(outcome);
+		Move best_move(outcome);
 		memoization.setMove(board, best_move);
 		return best_move;
 	}
 
 	const char DEFAULT_EVALUATION = '\n'; // Absurd symbol, technically it represents that everyone's losing
-	best_move = Move(DEFAULT_EVALUATION);
+	std::vector<Move> best_moves = { Move(DEFAULT_EVALUATION) };
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
@@ -135,18 +135,22 @@ Move Board::getBestMove(const int current_player)
 			board[y][x] = current_player_symbol;
 			
 			Move next_move = getBestMove((current_player + 1) % players_amount);
+			const Move& best_move = best_moves[0];
 			if (best_move.isWorse(next_move, current_player_symbol) || !best_move.has_move)
 			{
-				best_move.has_move = true;
-				best_move.evaluation = next_move.evaluation;
-				best_move.y = y;
-				best_move.x = x;
-				best_move.moves_remaining = next_move.moves_remaining + 1;
+				best_moves.clear();
+				best_moves.push_back(Move(y, x, next_move.moves_remaining + 1, next_move.evaluation));
+			}
+			else if (best_move.isSame(next_move, current_player_symbol))
+			{
+				best_moves.push_back(Move(y, x, next_move.moves_remaining + 1, next_move.evaluation));
 			}
 
 			board[y][x] = BLANK_TILE;
 		}
 	}
+
+	const Move& best_move = best_moves[rand() % best_moves.size()];
 	memoization.setMove(board, best_move);
 	return best_move;
 }
