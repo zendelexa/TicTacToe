@@ -3,6 +3,7 @@
 
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
+const char FORCED_TIE_SYMBOL = '_';
 
 int main()
 {
@@ -49,7 +50,7 @@ int main()
 		}
 
 		auto winner = board.checkWin();
-		if (winner != BLANK_TILE)
+		if (winner != BLANK_TILE && winner != TIE_SYMBOL || winner == TIE_SYMBOL && board.emptyTilesRemaining() == 0)
 		{
 			system("cls");
 			board.print();

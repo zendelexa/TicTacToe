@@ -7,8 +7,14 @@
 
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
+const char FORCED_TIE_SYMBOL = '_';
 
-Board::Board(const int board_size, const int players_amount) : board_size(board_size), players_amount(players_amount), board(board_size, std::vector<char>(board_size, BLANK_TILE)) {}
+Board::Board(const int board_size, const int players_amount) : 
+	board_size(board_size), 
+	players_amount(players_amount), 
+	board(board_size, std::vector<char>(board_size, BLANK_TILE)), 
+	empty_tiles_remaining(board_size * board_size) 
+{}
 
 void Board::print() const
 {
@@ -39,73 +45,116 @@ void Board::place(const int y, const int x, const int current_player)
 
 	char current_symbol = 'A' + (char)current_player;
 	board[y][x] = current_symbol;
+	empty_tiles_remaining--;
 }
 
-char Board::checkWin() const
+char Board::checkWin() const //TODO: Refactor
 {
+	int possible_lines = 0;
+
 	// Horizontal lines
 	for (int y = 0; y < board_size; y++)
 	{
 		char winner_symbol = board[y][0];
+		char possible_winner = winner_symbol;
 		for (int x = 1; x < board_size; x++)
 		{
+			if (possible_winner == BLANK_TILE)
+				possible_winner = board[y][x];
+
 			if (winner_symbol != board[y][x])
 			{
 				winner_symbol = BLANK_TILE;
-				break;
+				if (possible_winner != BLANK_TILE && board[y][x] != BLANK_TILE)
+				{
+					possible_winner = TIE_SYMBOL;
+					break;
+				}
 			}
 		}
 		if (winner_symbol != BLANK_TILE)
 			return winner_symbol;
+		if (possible_winner != TIE_SYMBOL)
+			possible_lines++;
 	}
 
 	// Vertical lines
 	for (int x = 0; x < board_size; x++)
 	{
 		char winner_symbol = board[0][x];
+		char possible_winner = winner_symbol;
 		for (int y = 1; y < board_size; y++)
 		{
+			if (possible_winner == BLANK_TILE)
+				possible_winner = board[y][x];
+
 			if (winner_symbol != board[y][x])
 			{
 				winner_symbol = BLANK_TILE;
-				break;
+				if (possible_winner != BLANK_TILE && board[y][x] != BLANK_TILE)
+				{
+					possible_winner = TIE_SYMBOL;
+					break;
+				}
 			}
 		}
 		if (winner_symbol != BLANK_TILE)
 			return winner_symbol;
+		if (possible_winner != TIE_SYMBOL)
+			possible_lines++;
 	}
 
 	// Diagonals
 	char winner_symbol = board[0][0];
+	char possible_winner = winner_symbol;
 	for (int y = 1; y < board_size; y++)
 	{
+		if (possible_winner == BLANK_TILE)
+			possible_winner = board[y][y];
+
 		if (winner_symbol != board[y][y])
 		{
 			winner_symbol = BLANK_TILE;
-			break;
+			if (possible_winner != BLANK_TILE && board[y][y] != BLANK_TILE)
+			{
+				possible_winner = TIE_SYMBOL;
+				break;
+			}
 		}
 	}
 	if (winner_symbol != BLANK_TILE)
 		return winner_symbol;
+	if (possible_winner != TIE_SYMBOL)
+		possible_lines++;
 
 	winner_symbol = board[0][board_size - 1];
+	possible_winner = winner_symbol;
 	for (int y = 1; y < board_size; y++)
 	{
+		if (possible_winner == BLANK_TILE)
+			possible_winner = board[y][board_size - 1 - y];
+
 		if (winner_symbol != board[y][board_size - 1 - y])
 		{
 			winner_symbol = BLANK_TILE;
-			break;
+			if (possible_winner != BLANK_TILE && board[y][board_size - 1 - y] != BLANK_TILE)
+			{
+				possible_winner = TIE_SYMBOL;
+				break;
+			}
 		}
 	}
 	if (winner_symbol != BLANK_TILE)
 		return winner_symbol;
+	if (possible_winner != TIE_SYMBOL)
+		possible_lines++;
 
 	// Not a win
-	for (auto& row : board)
-		for (auto& tile : row)
-			if (tile == BLANK_TILE)
-				return BLANK_TILE;
-	return TIE_SYMBOL;
+	if (possible_lines == 0 && empty_tiles_remaining != 0)
+		return FORCED_TIE_SYMBOL;
+	if (empty_tiles_remaining == 0)
+		return TIE_SYMBOL;
+	return BLANK_TILE;
 }
 
 Move Board::getBestMove(const int current_player)
@@ -117,7 +166,19 @@ Move Board::getBestMove(const int current_player)
 		return best_memoized_move;
 
 	char outcome = checkWin();
-	if (outcome != BLANK_TILE)
+	if (outcome == FORCED_TIE_SYMBOL)
+	{
+		std::vector<std::pair<int, int>> empty_tiles;
+		for (int y = 0; y < board_size; y++)
+			for (int x = 0; x < board_size; x++)
+				if (board[y][x] == BLANK_TILE)
+					empty_tiles.push_back({ y, x });
+		int index = rand() % empty_tiles.size();
+		Move best_move(empty_tiles[index].first, empty_tiles[index].second, empty_tiles.size(), TIE_SYMBOL);
+		memoization.setMove(board, best_move);
+		return best_move;
+	}
+	if (outcome != BLANK_TILE && outcome != TIE_SYMBOL || outcome == TIE_SYMBOL && empty_tiles_remaining == 0)
 	{
 		Move best_move(outcome);
 		memoization.setMove(board, best_move);
@@ -133,6 +194,7 @@ Move Board::getBestMove(const int current_player)
 			if (board[y][x] != BLANK_TILE) continue;
 
 			board[y][x] = current_player_symbol;
+			empty_tiles_remaining--;
 			
 			Move next_move = getBestMove((current_player + 1) % players_amount);
 			const Move& best_move = best_moves[0];
@@ -147,10 +209,16 @@ Move Board::getBestMove(const int current_player)
 			}
 
 			board[y][x] = BLANK_TILE;
+			empty_tiles_remaining++;
 		}
 	}
 
 	const Move& best_move = best_moves[rand() % best_moves.size()];
 	memoization.setMove(board, best_move);
 	return best_move;
+}
+
+int Board::emptyTilesRemaining() const
+{
+	return empty_tiles_remaining;
 }
