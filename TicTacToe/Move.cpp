@@ -6,9 +6,17 @@ const char TIE_SYMBOL = '-';
 
 Move::Move() = default;
 
-Move::Move(const char evaluation) : evaluation(evaluation) {}
+Move::Move(const char evaluation) : 
+	evaluation(evaluation) 
+{}
 
-Move::Move(const int y, const int x, const int moves_remaining, const char evaluation) : has_move(true), y(y), x(x), moves_remaining(moves_remaining), evaluation(evaluation) {}
+Move::Move(const int y, const int x, const int moves_remaining, const char evaluation) : 
+	has_move(true), 
+	y(y), 
+	x(x), 
+	moves_remaining(moves_remaining), 
+	evaluation(evaluation) 
+{}
 
 bool isWorseHelper(char a, char b, char current_player)
 {
