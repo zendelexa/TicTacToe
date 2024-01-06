@@ -4,23 +4,25 @@
 #include <string>
 #include "Move.h"
 #include "MoveMap.h"
+#include "BoardLine.h"
 
 class Board
 {
-	const int board_size;
-	const int players_amount;
+	int board_size;
+	int players_amount;
 	std::vector<std::vector<char>> board;
 	MoveMap memoization;
 	int empty_tiles_remaining;
+	std::vector<BoardLine> lines;
 
 public:
 
-	Board(const int board_size, const int players_amount);
+	Board(int board_size, int players_amount);
 
 	void print() const;
-	void place(const int y, const int x, const int current_player);
+	void place(int y, int x, int current_player);
 	char checkWin() const;
-	Move getBestMove(const int current_player);
+	Move getBestMove(int current_player);
 	int emptyTilesRemaining() const;
 };
 

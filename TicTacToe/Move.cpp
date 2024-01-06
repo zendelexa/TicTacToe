@@ -6,11 +6,13 @@ const char TIE_SYMBOL = '-';
 
 Move::Move() = default;
 
-Move::Move(const char evaluation) : 
+Move::Move(char evaluation)
+: 
 	evaluation(evaluation) 
 {}
 
-Move::Move(const int y, const int x, const int moves_remaining, const char evaluation) : 
+Move::Move(int y, int x, int moves_remaining, char evaluation)
+: 
 	has_move(true), 
 	y(y), 
 	x(x), 

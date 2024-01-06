@@ -8,13 +8,24 @@
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 const char FORCED_TIE_SYMBOL = '_';
+const char GAME_STILL_GOING_SYMBOL = BLANK_TILE;
 
-Board::Board(const int board_size, const int players_amount) : 
+
+Board::Board(int board_size, int players_amount)
+: 
 	board_size(board_size), 
 	players_amount(players_amount), 
 	board(board_size, std::vector<char>(board_size, BLANK_TILE)), 
 	empty_tiles_remaining(board_size * board_size) 
-{}
+{
+	for (int i = 0; i < board_size; i++)
+	{
+		lines.push_back(BoardLine(i, 0, 0, 1, board_size)); // Horizontal line
+		lines.push_back(BoardLine(0, i, 1, 0, board_size)); // Vertical line
+	}
+	lines.push_back(BoardLine(0, 0, 1, 1, board_size)); // Main diagonal
+	lines.push_back(BoardLine(0, board_size - 1, 1, -1, board_size)); // Secondary diagonal
+}
 
 void Board::print() const
 {
@@ -38,7 +49,7 @@ void Board::print() const
 	std::cout << std::endl;
 }
 
-void Board::place(const int y, const int x, const int current_player)
+void Board::place(int y, int x, int current_player)
 {
 	if (board[y][x] != BLANK_TILE)
 		throw std::invalid_argument("Invalid move. The tile is already occupied.");
@@ -48,116 +59,42 @@ void Board::place(const int y, const int x, const int current_player)
 	empty_tiles_remaining--;
 }
 
-char Board::checkWin() const //TODO: Refactor
+char Board::checkWin() const
 {
-	int possible_lines = 0;
+	bool is_possible_win = false;
 
-	// Horizontal lines
-	for (int y = 0; y < board_size; y++)
+	for (const auto& line : lines)
 	{
-		char winner_symbol = board[y][0];
-		char possible_winner = winner_symbol;
-		for (int x = 1; x < board_size; x++)
-		{
-			if (possible_winner == BLANK_TILE)
-				possible_winner = board[y][x];
+		if (line.isWin(board))
+			return line.getTile(board, 0);
 
-			if (winner_symbol != board[y][x])
-			{
-				winner_symbol = BLANK_TILE;
-				if (possible_winner != BLANK_TILE && board[y][x] != BLANK_TILE)
-				{
-					possible_winner = TIE_SYMBOL;
-					break;
-				}
-			}
-		}
-		if (winner_symbol != BLANK_TILE)
-			return winner_symbol;
-		if (possible_winner != TIE_SYMBOL)
-			possible_lines++;
+		if (line.isPossibleWin(board))
+			is_possible_win = true;
 	}
 
-	// Vertical lines
-	for (int x = 0; x < board_size; x++)
-	{
-		char winner_symbol = board[0][x];
-		char possible_winner = winner_symbol;
-		for (int y = 1; y < board_size; y++)
-		{
-			if (possible_winner == BLANK_TILE)
-				possible_winner = board[y][x];
-
-			if (winner_symbol != board[y][x])
-			{
-				winner_symbol = BLANK_TILE;
-				if (possible_winner != BLANK_TILE && board[y][x] != BLANK_TILE)
-				{
-					possible_winner = TIE_SYMBOL;
-					break;
-				}
-			}
-		}
-		if (winner_symbol != BLANK_TILE)
-			return winner_symbol;
-		if (possible_winner != TIE_SYMBOL)
-			possible_lines++;
-	}
-
-	// Diagonals
-	char winner_symbol = board[0][0];
-	char possible_winner = winner_symbol;
-	for (int y = 1; y < board_size; y++)
-	{
-		if (possible_winner == BLANK_TILE)
-			possible_winner = board[y][y];
-
-		if (winner_symbol != board[y][y])
-		{
-			winner_symbol = BLANK_TILE;
-			if (possible_winner != BLANK_TILE && board[y][y] != BLANK_TILE)
-			{
-				possible_winner = TIE_SYMBOL;
-				break;
-			}
-		}
-	}
-	if (winner_symbol != BLANK_TILE)
-		return winner_symbol;
-	if (possible_winner != TIE_SYMBOL)
-		possible_lines++;
-
-	winner_symbol = board[0][board_size - 1];
-	possible_winner = winner_symbol;
-	for (int y = 1; y < board_size; y++)
-	{
-		if (possible_winner == BLANK_TILE)
-			possible_winner = board[y][board_size - 1 - y];
-
-		if (winner_symbol != board[y][board_size - 1 - y])
-		{
-			winner_symbol = BLANK_TILE;
-			if (possible_winner != BLANK_TILE && board[y][board_size - 1 - y] != BLANK_TILE)
-			{
-				possible_winner = TIE_SYMBOL;
-				break;
-			}
-		}
-	}
-	if (winner_symbol != BLANK_TILE)
-		return winner_symbol;
-	if (possible_winner != TIE_SYMBOL)
-		possible_lines++;
-
-	// Not a win
-	if (possible_lines == 0 && empty_tiles_remaining != 0)
-		return FORCED_TIE_SYMBOL;
-	if (empty_tiles_remaining == 0)
+	bool is_end_of_game = empty_tiles_remaining == 0;
+	if (is_end_of_game)
 		return TIE_SYMBOL;
-	return BLANK_TILE;
+
+	if (!is_possible_win)
+		return FORCED_TIE_SYMBOL;
+
+	return GAME_STILL_GOING_SYMBOL;
 }
 
-Move Board::getBestMove(const int current_player)
+std::pair<int, int> getRandomEmptyTile(const std::vector<std::vector<char>>& board)
+{
+	int board_size = board.size();
+
+	std::vector<std::pair<int, int>> empty_tiles;
+	for (int y = 0; y < board_size; y++)
+		for (int x = 0; x < board_size; x++)
+			if (board[y][x] == BLANK_TILE)
+				empty_tiles.push_back({ y, x });
+	return empty_tiles[rand() % empty_tiles.size()];
+}
+
+Move Board::getBestMove(int current_player)
 {
 	char current_player_symbol = 'A' + (char)current_player;
 
@@ -168,17 +105,12 @@ Move Board::getBestMove(const int current_player)
 	char outcome = checkWin();
 	if (outcome == FORCED_TIE_SYMBOL)
 	{
-		std::vector<std::pair<int, int>> empty_tiles;
-		for (int y = 0; y < board_size; y++)
-			for (int x = 0; x < board_size; x++)
-				if (board[y][x] == BLANK_TILE)
-					empty_tiles.push_back({ y, x });
-		int index = rand() % empty_tiles.size();
-		Move best_move(empty_tiles[index].first, empty_tiles[index].second, empty_tiles.size(), TIE_SYMBOL);
+		auto random_empty_tile = getRandomEmptyTile(board);
+		Move best_move(random_empty_tile.first, random_empty_tile.second, empty_tiles_remaining - 1, TIE_SYMBOL);
 		memoization.setMove(board, best_move);
 		return best_move;
 	}
-	if (outcome != BLANK_TILE && outcome != TIE_SYMBOL || outcome == TIE_SYMBOL && empty_tiles_remaining == 0)
+	if (outcome != GAME_STILL_GOING_SYMBOL)
 	{
 		Move best_move(outcome);
 		memoization.setMove(board, best_move);
