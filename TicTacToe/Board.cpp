@@ -8,7 +8,7 @@
 const char BLANK_TILE = ' ';
 const char TIE_SYMBOL = '-';
 const char FORCED_TIE_SYMBOL = '_';
-const char GAME_STILL_GOING_SYMBOL = BLANK_TILE;
+const char UNEVALUATED_SYMBOL = BLANK_TILE;
 
 
 Board::Board(int board_size, int players_amount)
@@ -79,10 +79,10 @@ char Board::checkWin() const
 	if (!is_possible_win)
 		return FORCED_TIE_SYMBOL;
 
-	return GAME_STILL_GOING_SYMBOL;
+	return UNEVALUATED_SYMBOL;
 }
 
-std::pair<int, int> getRandomEmptyTile(const std::vector<std::vector<char>>& board)
+Move getRandomMove(const std::vector<std::vector<char>>& board)
 {
 	int board_size = board.size();
 
@@ -91,34 +91,33 @@ std::pair<int, int> getRandomEmptyTile(const std::vector<std::vector<char>>& boa
 		for (int x = 0; x < board_size; x++)
 			if (board[y][x] == BLANK_TILE)
 				empty_tiles.push_back({ y, x });
-	return empty_tiles[rand() % empty_tiles.size()];
+	const auto& random_empty_tile = empty_tiles[rand() % empty_tiles.size()];
+	return Move(random_empty_tile.first, random_empty_tile.second, TIE_SYMBOL);
 }
 
 Move Board::getBestMove(int current_player)
 {
 	char current_player_symbol = 'A' + (char)current_player;
 
-	Move best_memoized_move = memoization.getMove(board);
+	const Move& best_memoized_move = memoization.getMove(board);
 	if (best_memoized_move.has_move)
 		return best_memoized_move;
 
 	char outcome = checkWin();
 	if (outcome == FORCED_TIE_SYMBOL)
 	{
-		auto random_empty_tile = getRandomEmptyTile(board);
-		Move best_move(random_empty_tile.first, random_empty_tile.second, empty_tiles_remaining - 1, TIE_SYMBOL);
-		memoization.setMove(board, best_move);
-		return best_move;
+		const Move& random_move = getRandomMove(board);
+		memoization.setMove(board, random_move);
+		return random_move;
 	}
-	if (outcome != GAME_STILL_GOING_SYMBOL)
+	if (outcome != UNEVALUATED_SYMBOL)
 	{
 		Move best_move(outcome);
 		memoization.setMove(board, best_move);
 		return best_move;
 	}
 
-	const char DEFAULT_EVALUATION = '\n'; // Absurd symbol, technically it represents that everyone's losing
-	std::vector<Move> best_moves = { Move(DEFAULT_EVALUATION) };
+	std::vector<Move> best_moves = { Move() };
 	for (int y = 0; y < board_size; y++)
 	{
 		for (int x = 0; x < board_size; x++)
@@ -130,14 +129,14 @@ Move Board::getBestMove(int current_player)
 			
 			Move next_move = getBestMove((current_player + 1) % players_amount);
 			const Move& best_move = best_moves[0];
-			if (best_move.isWorse(next_move, current_player_symbol) || !best_move.has_move)
+			if (!best_move.has_move || best_move.isWorse(next_move, current_player_symbol))
 			{
 				best_moves.clear();
-				best_moves.push_back(Move(y, x, next_move.moves_remaining + 1, next_move.evaluation));
+				best_moves.push_back(Move(y, x, next_move.evaluation));
 			}
 			else if (best_move.isSame(next_move, current_player_symbol))
 			{
-				best_moves.push_back(Move(y, x, next_move.moves_remaining + 1, next_move.evaluation));
+				best_moves.push_back(Move(y, x, next_move.evaluation));
 			}
 
 			board[y][x] = BLANK_TILE;

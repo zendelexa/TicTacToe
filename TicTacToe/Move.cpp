@@ -8,15 +8,14 @@ Move::Move() = default;
 
 Move::Move(char evaluation)
 : 
-	evaluation(evaluation) 
+	evaluation(evaluation)
 {}
 
-Move::Move(int y, int x, int moves_remaining, char evaluation)
+Move::Move(int y, int x, char evaluation)
 : 
 	has_move(true), 
 	y(y), 
-	x(x), 
-	moves_remaining(moves_remaining), 
+	x(x),
 	evaluation(evaluation) 
 {}
 
